@@ -1,6 +1,7 @@
 # Created by Shengtao Li Based on the following:
 #   - find_faces_in_pictures.py
 #   - face_distance.py
+# 
 # updated: 2020-04-15
 
 from PIL import Image
