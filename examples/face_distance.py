@@ -1,4 +1,5 @@
 import face_recognition
+from PIL import Image
 
 # Often instead of just checking if two faces match or not (True or False), it's helpful to see how similar they are.
 # You can do that by using the face_distance function.
@@ -11,24 +12,25 @@ import face_recognition
 # smaller distance are more similar to each other than ones with a larger distance.
 
 # Load some images to compare against
-known_obama_image = face_recognition.load_image_file("obama.jpg")
-known_biden_image = face_recognition.load_image_file("biden.jpg")
+ref_image_1 = face_recognition.load_image_file("./ref_pics/Zhang-Ziyi.jpg")
+ref_image_2 = face_recognition.load_image_file("./ref_pics/Fan-Bingbing.jpg")
 
 # Get the face encodings for the known images
-obama_face_encoding = face_recognition.face_encodings(known_obama_image)[0]
-biden_face_encoding = face_recognition.face_encodings(known_biden_image)[0]
+ref1_face_encoding = face_recognition.face_encodings(ref_image_1)[0]
+ref2_face_encoding = face_recognition.face_encodings(ref_image_2)[0]
 
 known_encodings = [
-    obama_face_encoding,
-    biden_face_encoding
+    ref1_face_encoding,
+    ref2_face_encoding
 ]
 
 # Load a test image and get encondings for it
-image_to_test = face_recognition.load_image_file("obama2.jpg")
+image_to_test = face_recognition.load_image_file("./ref_pics/Zhang-Ziyi.jpg")
 image_to_test_encoding = face_recognition.face_encodings(image_to_test)[0]
 
 # See how far apart the test image is from the known faces
 face_distances = face_recognition.face_distance(known_encodings, image_to_test_encoding)
+
 
 for i, face_distance in enumerate(face_distances):
     print("The test image has a distance of {:.2} from known image #{}".format(face_distance, i))
