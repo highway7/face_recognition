@@ -10,14 +10,22 @@ import face_recognition
 from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
 from os import remove
-from flask import Flask, jsonify, request, redirect, send_file
+from flask import Flask, jsonify, request, redirect, send_file, render_template
 import io
+import numpy
+import base64
 
 # You can change this to any folder on your system
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
+app.config.update(
+    TESTING=True,
+    EXPLAIN_TEMPLATE_LOADING=True
+)
 
+
+#output = io.BytesIO()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -26,6 +34,7 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_image():
+    Web_DIR = "/home/shengtao/git/face_recognition/examples/web/"
     # Check if a valid image file was uploaded
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -41,17 +50,16 @@ def upload_image():
             return find_and_rank(file)
 
     # If no valid image file was uploaded, show the file upload form:
-    return '''
-    <!doctype html>
-    <title>Face Value Analyzer</title>
-    <h1>Upload a group picture and see whose looks close to a celebrity!</h1>
-    <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
-    '''
+    return render_template('home.html', message="Hello")
+
+#@app.route('/return_file/')
+#def return_file():
+#    global output
+#    return send_file(output, mimetype='image/png', as_attachment=False)
 
 def find_and_rank(file_stream):
+    #global output
+
     DIR = "/home/shengtao/git/face_recognition/examples"
     # Load some images to compare against
     ref_image_1 = face_recognition.load_image_file(DIR+"/ref_pics/Zhang-Ziyi.jpg")
@@ -124,23 +132,20 @@ def find_and_rank(file_stream):
         if min(face_distances) < best_dist:
             best_dist = min(face_distances)
             best_index = n
+            best_ref = numpy.where(face_distances == min(face_distances))[0][0]
             best_image = pil_image
 
- 
+    print("The best matching face #{} value is {}".format(best_index, best_image))
+    print("The ref of best matching face #{} is {}".format(best_index, best_ref))
+
     output = io.BytesIO()
     best_image.convert('RGBA').save(output, format='PNG')
-    output.seek(0, 0)
-    return send_file(output, mimetype='image/png', as_attachment=False)    
+    #output.seek(0, 0)
+    img = base64.b64encode(output.getvalue())
 
-    #tempFileObj = NamedTemporaryFile(mode='w+b',suffix='jpg')
-    #copyfileobj(best_image,tempFileObj)
-    #tempFileObj.seek(0,0)
-    
-    #print("The best matching face #{} value is {}".format(best_index, best_image))
-    #best_image.show()
-    #response = send_file(tempFileObj, as_attachment=True, attachment_filename='myfile.jpg')
-    #return response
-
+    #return send_file(output, mimetype='image/png', as_attachment=False)
+    return render_template('result.html',  img=img.decode('ascii')) 
+    # return render_template('result.html')    
 
 
 if __name__ == "__main__":
